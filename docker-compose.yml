@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  deadlock-monitor:
+    image: ghcr.io/your-username/deadlock-monitor:latest
+    container_name: deadlock-monitor
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DB_HOST=host.docker.internal
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=deadlock_monitor
+    restart: unless-stopped
+    # 如果无法访问 host.docker.internal，使用 host 网络模式
+    # network_mode: host

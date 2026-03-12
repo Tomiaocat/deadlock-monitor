@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>死锁监控</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+      background: #1a1a2e;
+      color: #eee;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #333;
+    }
+    .header h1 { font-size: 1.5rem; color: #ff6b6b; }
+    .controls { display: flex; gap: 15px; align-items: center; }
+    .refresh-interval { display: flex; align-items: center; gap: 8px; }
+    .refresh-interval select {
+      background: #2a2a4a;
+      color: #eee;
+      border: 1px solid #444;
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #444;
+    }
+    .status-dot.active { background: #4caf50; }
+    .status-dot.paused { background: #ff9800; }
+    #toggleBtn {
+      background: #444;
+      color: #eee;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    #toggleBtn:hover { background: #555; }
+    #toggleBtn.paused { background: #ff9800; color: #000; }
+
+    .deadlock-list { display: flex; flex-direction: column; gap: 20px; }
+    .deadlock-card {
+      background: #2a2a4a;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #3a3a5a;
+    }
+    .deadlock-header {
+      background: #3a3a5a;
+      padding: 12px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .deadlock-header:hover { background: #4a4a6a; }
+    .deadlock-info { display: flex; gap: 20px; flex-wrap: wrap; }
+    .deadlock-info span { font-size: 0.85rem; color: #aaa; }
+    .deadlock-info strong { color: #fff; }
+    .victim-badge {
+      background: #ff6b6b;
+      color: #000;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+    .deadlock-body {
+      padding: 15px;
+      display: none;
+    }
+    .deadlock-body.expanded { display: block; }
+    .threads-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    .thread-panel {
+      background: #1a1a2e;
+      border-radius: 6px;
+      padding: 12px;
+      border: 1px solid #3a3a5a;
+    }
+    .thread-panel.victim { border-color: #ff6b6b; }
+    .thread-title {
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .thread-info {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-bottom: 8px;
+    }
+    .thread-info label { color: #666; margin-right: 8px; }
+    .query-box {
+      background: #0d0d1a;
+      border-radius: 4px;
+      padding: 10px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.75rem;
+      color: #a5d6ff;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .no-deadlocks {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #888;
+    }
+    @media (max-width: 900px) {
+      .threads-container { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🔒 死锁监控</h1>
+    <div class="controls">
+      <div class="refresh-interval">
+        <label>刷新:</label>
+        <select id="refreshInterval">
+          <option value="0">暂停</option>
+          <option value="5000">5 秒</option>
+          <option value="10000" selected>10 秒</option>
+          <option value="30000">30 秒</option>
+          <option value="60000">1 分钟</option>
+        </select>
+      </div>
+      <div class="status">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">运行中</span>
+      </div>
+      <button id="toggleBtn">暂停</button>
+    </div>
+  </div>
+
+  <div id="deadlockList" class="deadlock-list">
+    <div class="loading">加载中...</div>
+  </div>
+
+  <script>
+    let refreshInterval = 10000;
+    let isPaused = false;
+    let timer = null;
+    let latestTs = null;
+
+    const listEl = document.getElementById('deadlockList');
+    const intervalSelect = document.getElementById('refreshInterval');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+
+    function formatThreadInfo(r) {
+      return `线程：${r.thread} | 库：${r.db} | 表：${r.tbl} | 索引：${r.idx} | 锁：${formatLockType(r.lock_type)}/${formatLockMode(r.lock_mode)} | 状态：${formatWaitHold(r.wait_hold)}`;
+    }
+
+    // 锁类型翻译
+    function formatLockType(type) {
+      const map = {
+        'RECORD': '行锁',
+        'TABLE': '表锁',
+        'PAGE': '页锁',
+        'INTENT': '意向锁',
+        'SHARED': '共享锁',
+        'EXCLUSIVE': '排他锁'
+      };
+      return map[type] || type;
+    }
+
+    // 锁模式翻译
+    function formatLockMode(mode) {
+      const map = {
+        'S': '共享锁 (S)',
+        'X': '排他锁 (X)',
+        'IS': '意向共享锁 (IS)',
+        'IX': '意向排他锁 (IX)',
+        'U': '更新锁 (U)',
+        'AI': '自增锁 (AI)'
+      };
+      return map[mode] || mode;
+    }
+
+    // 等待/持有状态翻译
+    function formatWaitHold(val) {
+      const map = {
+        'w': '等待中',
+        'h': '已持有',
+        'W': '等待中',
+        'H': '已持有'
+      };
+      return map[val] || val;
+    }
+
+    function createDeadlockCard(dl) {
+      // API 返回的已经是北京时间字符串，直接使用
+      const timeStr = dl.timestamp;
+      const lockTypeCn = formatLockType(dl.lockType);
+      const lockModeCn = formatLockMode(dl.lockMode);
+      const victimWaitHold = formatWaitHold(dl.victim.wait_hold);
+      const otherWaitHold = formatWaitHold(dl.other.wait_hold);
+
+      return `
+        <div class="deadlock-card" data-id="${dl.id}">
+          <div class="deadlock-header" onclick="this.nextElementSibling.classList.toggle('expanded')">
+            <div class="deadlock-info">
+              <span>🕐 <strong>${timeStr}</strong></span>
+              <span>📊 表：<strong>${dl.table}</strong></span>
+              <span>🔑 索引：<strong>${dl.index}</strong></span>
+              <span>🔐 锁：<strong>${lockTypeCn} / ${lockModeCn}</strong></span>
+            </div>
+            <span class="victim-badge">牺牲者：线程 ${dl.victim.thread}</span>
+          </div>
+          <div class="deadlock-body">
+            <div class="threads-container">
+              <div class="thread-panel victim">
+                <div class="thread-title">
+                  <span>🔴 受害者线程 (被回滚)</span>
+                  <span>线程 ID: ${dl.victim.thread}</span>
+                </div>
+                <div class="thread-info">
+                  <label>数据库:</label> ${dl.victim.db}<br>
+                  <label>表:</label> ${dl.victim.tbl}<br>
+                  <label>索引:</label> ${dl.victim.idx}<br>
+                  <label>锁类型:</label> ${dl.victim.lock_type} (${lockTypeCn})<br>
+                  <label>锁模式:</label> ${dl.victim.lock_mode} (${formatLockMode(dl.victim.lock_mode)})<br>
+                  <label>状态:</label> ${victimWaitHold}<br>
+                  <label>主机:</label> ${dl.victim.hostname}<br>
+                  <label>IP:</label> ${dl.victim.ip}<br>
+                  <label>用户:</label> ${dl.victim.user}
+                </div>
+                <div class="query-box">${escapeHtml(dl.victim.query)}</div>
+              </div>
+              <div class="thread-panel">
+                <div class="thread-title">
+                  <span>🔵 对手线程</span>
+                  <span>线程 ID: ${dl.other.thread}</span>
+                </div>
+                <div class="thread-info">
+                  <label>数据库:</label> ${dl.other.db}<br>
+                  <label>表:</label> ${dl.other.tbl}<br>
+                  <label>索引:</label> ${dl.other.idx}<br>
+                  <label>锁类型:</label> ${dl.other.lock_type} (${lockTypeCn})<br>
+                  <label>锁模式:</label> ${dl.other.lock_mode} (${formatLockMode(dl.other.lock_mode)})<br>
+                  <label>状态:</label> ${otherWaitHold}<br>
+                  <label>主机:</label> ${dl.other.hostname}<br>
+                  <label>IP:</label> ${dl.other.ip}<br>
+                  <label>用户:</label> ${dl.other.user}
+                </div>
+                <div class="query-box">${escapeHtml(dl.other.query)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    async function fetchDeadlocks() {
+      try {
+        const res = await fetch('/api/deadlocks');
+        const data = await res.json();
+
+        if (data.error) {
+          listEl.innerHTML = `<div class="no-deadlocks">错误：${data.error}</div>`;
+          return;
+        }
+
+        if (data.length === 0) {
+          listEl.innerHTML = '<div class="no-deadlocks">暂无死锁记录</div>';
+          return;
+        }
+
+        // Preserve expanded state
+        const expandedIds = [...document.querySelectorAll('.deadlock-body.expanded')]
+          .map(el => el.parentElement.dataset.id);
+
+        listEl.innerHTML = data.map(createDeadlockCard).join('');
+
+        // Restore expanded state
+        expandedIds.forEach(id => {
+          const body = document.querySelector(`.deadlock-card[data-id="${id}"] .deadlock-body`);
+          if (body) body.classList.add('expanded');
+        });
+
+        // Update latest timestamp
+        if (data.length > 0) {
+          latestTs = data[0].timestamp;
+        }
+      } catch (err) {
+        listEl.innerHTML = `<div class="no-deadlocks">加载失败：${err.message}</div>`;
+      }
+    }
+
+    function startTimer() {
+      if (timer) clearInterval(timer);
+      timer = setInterval(fetchDeadlocks, refreshInterval);
+      statusDot.className = 'status-dot active';
+      statusText.textContent = '运行中';
+      toggleBtn.textContent = '暂停';
+      toggleBtn.classList.remove('paused');
+    }
+
+    function pauseTimer() {
+      if (timer) clearInterval(timer);
+      timer = null;
+      statusDot.className = 'status-dot paused';
+      statusText.textContent = '已暂停';
+      toggleBtn.textContent = '继续';
+      toggleBtn.classList.add('paused');
+    }
+
+    // Event listeners
+    intervalSelect.addEventListener('change', (e) => {
+      refreshInterval = parseInt(e.target.value);
+      if (refreshInterval === 0) {
+        pauseTimer();
+      } else {
+        isPaused = false;
+        startTimer();
+      }
+    });
+
+    toggleBtn.addEventListener('click', () => {
+      if (isPaused) {
+        if (refreshInterval === 0) {
+          refreshInterval = 10000;
+          intervalSelect.value = '10000';
+        }
+        isPaused = false;
+        startTimer();
+      } else {
+        isPaused = true;
+        pauseTimer();
+      }
+    });
+
+    // Initial load
+    fetchDeadlocks();
+    startTimer();
+  </script>
+</body>
+</html>
