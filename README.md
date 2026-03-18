@@ -144,3 +144,5 @@ MIT License
 ## 致谢
 
 - [Percona Toolkit](https://www.percona.com/software/database-tools/percona-toolkit) - 死锁数据采集工具
+- [Claude](https://claude.ai) - AI 编程助手，协助完成代码实现
+- [阿里百炼](https://bailian.aliyun.com) - 提供大模型技术支持
