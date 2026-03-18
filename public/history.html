@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>历史记录 - 死锁监控系统</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+      background: #1a1a2e;
+      color: #eee;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #333;
+    }
+    .header h1 { font-size: 1.5rem; color: #ff6b6b; }
+    .header-left { display: flex; align-items: center; gap: 20px; }
+    .nav-tabs { display: flex; gap: 10px; }
+    .nav-tab {
+      padding: 8px 16px;
+      background: #2a2a4a;
+      border: 1px solid #3a3a5a;
+      color: #aaa;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .nav-tab:hover { background: #3a3a5a; color: #eee; }
+    .nav-tab.active { background: #ff6b6b; border-color: #ff6b6b; color: #fff; }
+    .user-menu { display: flex; align-items: center; gap: 12px; color: #aaa; font-size: 0.9rem; }
+    .user-info { display: flex; align-items: center; gap: 8px; }
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: #ff6b6b;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: bold; font-size: 0.9rem;
+    }
+    .namespace-select {
+      background: #2a2a4a; color: #eee;
+      border: 1px solid #444;
+      padding: 5px 10px; border-radius: 4px;
+      font-size: 0.85rem; cursor: pointer;
+    }
+    .logout-btn {
+      background: transparent; border: 1px solid #444;
+      color: #aaa; padding: 4px 12px; border-radius: 4px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .logout-btn:hover { background: #ff6b6b; border-color: #ff6b6b; color: #fff; }
+
+    .container { max-width: 1600px; margin: 0 auto; }
+
+    /* Search Panel */
+    .search-panel {
+      background: #2a2a4a;
+      border: 1px solid #3a3a5a;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .search-title {
+      font-size: 1.1rem;
+      color: #ff6b6b;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .search-toggle {
+      background: transparent;
+      border: 1px solid #444;
+      color: #aaa;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .search-toggle:hover { background: #3a3a5a; }
+    .search-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .search-form.collapsed { display: none; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label {
+      color: #aaa; font-size: 0.85rem;
+    }
+    .form-group input, .form-group select {
+      background: #1a1a2e;
+      border: 1px solid #3a3a5a;
+      color: #eee;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none; border-color: #ff6b6b;
+    }
+    .search-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #3a3a5a;
+    }
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: #ff6b6b; color: #fff; }
+    .btn-primary:hover { background: #ff5252; }
+    .btn-secondary { background: #3a3a5a; color: #eee; }
+    .btn-secondary:hover { background: #4a4a6a; }
+    .btn-success { background: #4caf50; color: #fff; }
+    .btn-success:hover { background: #45a049; }
+
+    /* Results Table */
+    .results-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+    .table-container {
+      background: #2a2a4a;
+      border: 1px solid #3a3a5a;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid #3a3a5a;
+    }
+    th {
+      background: #1a1a2e;
+      color: #ff6b6b;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    tr:hover { background: #3a3a5a; }
+    .victim-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .victim-yes { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; }
+    .victim-no { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
+    .lock-mode {
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .lock-mode-X { background: rgba(255, 107, 107, 0.3); color: #ff6b6b; }
+    .lock-mode-S { background: rgba(76, 175, 80, 0.3); color: #4caf50; }
+    .query-cell {
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .pagination button {
+      background: #3a3a5a;
+      border: 1px solid #4a4a6a;
+      color: #eee;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pagination button:hover:not(:disabled) {
+      background: #4a4a6a;
+    }
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .pagination .page-info {
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+    .pagination select {
+      background: #2a2a4a;
+      border: 1px solid #444;
+      color: #eee;
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* Loading & Empty States */
+    .loading, .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+    .loading { color: #ff6b6b; }
+    .empty-state-icon { font-size: 3rem; margin-bottom: 15px; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header { flex-direction: column; gap: 15px; }
+      .nav-tabs { flex-wrap: wrap; justify-content: center; }
+      .search-form { grid-template-columns: 1fr; }
+      table { font-size: 0.75rem; }
+      th, td { padding: 6px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <h1>📊 历史记录</h1>
+      <nav class="nav-tabs">
+        <a href="/index.html" class="nav-tab">实时死锁</a>
+        <a href="/history.html" class="nav-tab active">历史记录</a>
+        <a href="/index.html?tab=tasks" class="nav-tab">监控任务</a>
+      </nav>
+    </div>
+    <div class="user-menu">
+      <div class="user-info">
+        <span class="user-avatar" id="userAvatar"></span>
+        <span id="userDisplay"></span>
+        <span style="color:#666">|</span>
+        <select class="namespace-select" id="namespaceSelect"></select>
+      </div>
+      <button class="logout-btn" onclick="logout()">退出</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Search Panel -->
+    <div class="search-panel">
+      <div class="search-title">
+        <span>搜索条件</span>
+        <button class="search-toggle" onclick="toggleSearch()">展开/收起</button>
+      </div>
+      <form class="search-form" id="searchForm">
+        <div class="form-group">
+          <label for="filter_server">数据源</label>
+          <select id="filter_server"><option value="">全部</option></select>
+        </div>
+        <div class="form-group">
+          <label for="filter_lock_type">锁类型</label>
+          <select id="filter_lock_type"><option value="">全部</option></select>
+        </div>
+        <div class="form-group">
+          <label for="filter_lock_mode">锁模式</label>
+          <select id="filter_lock_mode"><option value="">全部</option>
+            <option value="X">X (排他锁)</option>
+            <option value="S">S (共享锁)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="filter_tbl">表名</label>
+          <input type="text" id="filter_tbl" placeholder="模糊搜索">
+        </div>
+        <div class="form-group">
+          <label for="filter_db">数据库</label>
+          <select id="filter_db"><option value="">全部</option></select>
+        </div>
+        <div class="form-group">
+          <label for="filter_ip">客户端 IP</label>
+          <input type="text" id="filter_ip" placeholder="精确匹配">
+        </div>
+        <div class="form-group">
+          <label for="filter_hostname">主机名</label>
+          <input type="text" id="filter_hostname" placeholder="模糊搜索">
+        </div>
+        <div class="form-group">
+          <label for="filter_user">数据库用户</label>
+          <input type="text" id="filter_user" placeholder="精确匹配">
+        </div>
+        <div class="form-group">
+          <label for="filter_wait_hold">锁状态</label>
+          <select id="filter_wait_hold"><option value="">全部</option>
+            <option value="W">W (等待)</option>
+            <option value="H">H (持有)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="filter_victim">是否牺牲品</label>
+          <select id="filter_victim"><option value="">全部</option>
+            <option value="1">是</option>
+            <option value="0">否</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="filter_date_from">开始日期</label>
+          <input type="datetime-local" id="filter_date_from">
+        </div>
+        <div class="form-group">
+          <label for="filter_date_to">结束日期</label>
+          <input type="datetime-local" id="filter_date_to">
+        </div>
+        <div class="form-group">
+          <label for="filter_query">SQL 搜索</label>
+          <input type="text" id="filter_query" placeholder="SQL 全文搜索">
+        </div>
+      </form>
+      <div class="search-actions">
+        <button type="button" class="btn btn-primary" onclick="search()">搜索</button>
+        <button type="button" class="btn btn-secondary" onclick="resetSearch()">重置</button>
+        <button type="button" class="btn btn-success" onclick="exportCSV()">导出 CSV</button>
+      </div>
+    </div>
+
+    <!-- Results Info -->
+    <div class="results-info" id="resultsInfo">
+      <span>共 0 条记录</span>
+      <span>第 1/1 页</span>
+    </div>
+
+    <!-- Results Table -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>数据源</th>
+            <th>线程 ID</th>
+            <th>数据库</th>
+            <th>表名</th>
+            <th>索引</th>
+            <th>锁类型</th>
+            <th>锁模式</th>
+            <th>状态</th>
+            <th>牺牲品</th>
+            <th>事务时间 (s)</th>
+            <th>用户</th>
+            <th>客户端 IP</th>
+            <th>SQL</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody">
+          <tr class="loading"><td colspan="14">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <script type="module">
+    import { auth, api } from '/js/auth.js';
+
+    // State
+    let currentPage = 1;
+    let pageSize = 50;
+    let totalRecords = 0;
+    let totalPages = 0;
+    let filterOptions = { servers: [], lock_types: [], lock_modes: [], databases: [], tables: [] };
+
+    // Initialize
+    async function init() {
+      console.log('[History] Initializing...');
+
+      // Check auth
+      try {
+        const user = await auth.checkAuth();
+        renderUserMenu(user);
+      } catch (err) {
+        console.error('[History] Auth error:', err);
+        window.location.href = '/login.html';
+        return;
+      }
+
+      // Load filter options
+      await loadFilterOptions();
+
+      // Initial search
+      await search();
+
+      console.log('[History] Initialization complete');
+    }
+
+    // Render user menu
+    function renderUserMenu(user) {
+      document.getElementById('userAvatar').textContent = user.username.charAt(0).toUpperCase();
+      document.getElementById('userDisplay').textContent = user.display_name || user.username;
+
+      const nsSelect = document.getElementById('namespaceSelect');
+      nsSelect.innerHTML = '<option value="">加载中...</option>';
+
+      api.get('/api/namespaces/available').then(namespaces => {
+        nsSelect.innerHTML = namespaces.map(ns =>
+          `<option value="${ns.id}" ${ns.id === user.namespace_id ? 'selected' : ''}>${ns.name}</option>`
+        ).join('');
+
+        nsSelect.onchange = async () => {
+          try {
+            await auth.switchNamespace(parseInt(nsSelect.value));
+            window.location.reload();
+          } catch (err) {
+            alert('切换命名空间失败：' + err.message);
+          }
+        };
+      }).catch(err => {
+        nsSelect.innerHTML = '<option value="">加载失败</option>';
+      });
+    }
+
+    // Load filter options
+    async function loadFilterOptions() {
+      try {
+        filterOptions = await api.get('/api/history/filters');
+        populateSelect('filter_server', filterOptions.servers);
+        populateSelect('filter_lock_type', filterOptions.lock_types);
+        populateSelect('filter_db', filterOptions.databases);
+      } catch (err) {
+        console.error('[History] Load filters error:', err);
+      }
+    }
+
+    function populateSelect(id, options) {
+      const select = document.getElementById(id);
+      const currentValue = select.value;
+      select.innerHTML = '<option value="">全部</option>' +
+        options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+      select.value = currentValue;
+    }
+
+    // Toggle search form
+    window.toggleSearch = function() {
+      const form = document.getElementById('searchForm');
+      form.classList.toggle('collapsed');
+    };
+
+    // Get search params
+    function getSearchParams() {
+      const params = {};
+      const fields = ['server', 'lock_type', 'lock_mode', 'tbl', 'db', 'ip', 'hostname', 'user', 'wait_hold', 'victim', 'query', 'date_from', 'date_to'];
+      for (const field of fields) {
+        const el = document.getElementById(`filter_${field}`);
+        if (el && el.value) {
+          params[field] = el.value;
+        }
+      }
+      return params;
+    }
+
+    // Search
+    window.search = async function() {
+      currentPage = 1;
+      await loadResults();
+    };
+
+    // Reset search
+    window.resetSearch = function() {
+      document.getElementById('searchForm').reset();
+      loadFilterOptions();
+      search();
+    };
+
+    // Load results
+    async function loadResults() {
+      const tbody = document.getElementById('resultsBody');
+      tbody.innerHTML = '<tr class="loading"><td colspan="14">加载中...</td></tr>';
+
+      const params = getSearchParams();
+      params.page = currentPage;
+      params.pageSize = pageSize;
+
+      try {
+        const result = await api.get('/api/history', params);
+        totalRecords = result.total;
+        totalPages = result.totalPages;
+        renderResults(result.data);
+        renderPagination();
+        renderResultsInfo();
+      } catch (err) {
+        console.error('[History] Load results error:', err);
+        tbody.innerHTML = '<tr class="empty-state"><td colspan="14">加载失败：' + err.message + '</td></tr>';
+      }
+    }
+
+    // Render results
+    function renderResults(data) {
+      const tbody = document.getElementById('resultsBody');
+
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr class="empty-state"><td colspan="14"><div class="empty-state-icon">📭</div>暂无数据</td></tr>';
+        return;
+      }
+
+      const formatDateTime = (ts) => {
+        if (!ts) return '';
+        const date = new Date(ts);
+        return date.toLocaleString('zh-CN', {
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        });
+      };
+
+      tbody.innerHTML = data.map(row => `
+        <tr>
+          <td>${formatDateTime(row.ts)}</td>
+          <td>${row.server || '-'}</td>
+          <td>${row.thread}</td>
+          <td>${row.db}</td>
+          <td>${row.tbl}</td>
+          <td>${row.idx || '-'}</td>
+          <td>${row.lock_type}</td>
+          <td><span class="lock-mode lock-mode-${row.lock_mode}">${row.lock_mode}</span></td>
+          <td>${row.wait_hold === 'W' ? '等待' : '持有'}</td>
+          <td><span class="victim-badge victim-${row.victim ? 'yes' : 'no'}">${row.victim ? '是' : '否'}</span></td>
+          <td>${row.txn_time}</td>
+          <td>${row.user}</td>
+          <td>${row.ip}</td>
+          <td class="query-cell" title="${escapeHtml(row.query)}">${escapeHtml(row.query)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Render pagination
+    function renderPagination() {
+      const container = document.getElementById('pagination');
+
+      if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = `
+        <button ${currentPage <= 1 ? 'disabled' : ''} onclick="goToPage(1)">首页</button>
+        <button ${currentPage <= 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">上一页</button>
+        <span class="page-info">第 ${currentPage} / ${totalPages} 页</span>
+        <select onchange="changePageSize(this.value)">
+          <option value="20" ${pageSize === 20 ? 'selected' : ''}>20 条/页</option>
+          <option value="50" ${pageSize === 50 ? 'selected' : ''}>50 条/页</option>
+          <option value="100" ${pageSize === 100 ? 'selected' : ''}>100 条/页</option>
+          <option value="200" ${pageSize === 200 ? 'selected' : ''}>200 条/页</option>
+        </select>
+        <button ${currentPage >= totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">下一页</button>
+        <button ${currentPage >= totalPages ? 'disabled' : ''} onclick="goToPage(${totalPages})">末页</button>
+      `;
+    }
+
+    // Render results info
+    function renderResultsInfo() {
+      document.getElementById('resultsInfo').innerHTML = `
+        <span>共 ${totalRecords} 条记录</span>
+        <span>第 ${currentPage} / ${totalPages} 页</span>
+      `;
+    }
+
+    // Go to page
+    window.goToPage = function(page) {
+      if (page < 1 || page > totalPages) return;
+      currentPage = page;
+      loadResults();
+    };
+
+    // Change page size
+    window.changePageSize = function(size) {
+      pageSize = parseInt(size);
+      currentPage = 1;
+      loadResults();
+    };
+
+    // Export CSV
+    window.exportCSV = async function() {
+      const params = getSearchParams();
+      params.page = 1;
+      params.pageSize = 10000; // Export up to 10000 records
+
+      try {
+        const result = await api.get('/api/history', params);
+
+        if (result.data.length === 0) {
+          alert('没有数据可导出');
+          return;
+        }
+
+        const headers = ['时间', '数据源', '线程 ID', '数据库', '表名', '索引', '锁类型', '锁模式', '锁状态', '是否牺牲品', '事务时间 (s)', '用户', '客户端 IP', 'SQL'];
+
+        const rows = result.data.map(row => [
+          row.ts,
+          row.server || '',
+          row.thread,
+          row.db,
+          row.tbl,
+          row.idx || '',
+          row.lock_type,
+          row.lock_mode,
+          row.wait_hold,
+          row.victim,
+          row.txn_time,
+          row.user,
+          row.ip,
+          '"' + (row.query || '').replace(/"/g, '""') + '"'
+        ]);
+
+        const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+
+        // Download
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `deadlock_history_${new Date().toISOString().slice(0, 10)}.csv`;
+        link.click();
+      } catch (err) {
+        alert('导出失败：' + err.message);
+      }
+    };
+
+    // Logout
+    window.logout = async function() {
+      await auth.logout();
+    };
+
+    // Start
+    init();
+  </script>
+</body>
+</html>

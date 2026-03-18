@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户管理 - 死锁监控</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+      background: #1a1a2e;
+      color: #eee;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #333;
+    }
+    .header h1 { font-size: 1.5rem; color: #ff6b6b; }
+    .header-actions { display: flex; gap: 15px; align-items: center; }
+    .btn {
+      background: #444;
+      color: #eee;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .btn:hover { background: #555; }
+    .btn-primary { background: #ff6b6b; color: #fff; }
+    .btn-primary:hover { background: #ee5a5a; }
+    .btn-danger { background: #dc3545; color: #fff; }
+    .btn-danger:hover { background: #c82333; }
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+    .user-info { display: flex; align-items: center; gap: 8px; }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #ff6b6b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+    .logout-btn {
+      background: transparent;
+      border: 1px solid #444;
+      color: #aaa;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .logout-btn:hover { background: #333; color: #eee; }
+
+    /* Table Styles */
+    .table-container {
+      background: #2a2a4a;
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #3a3a5a;
+    }
+    th {
+      background: #1a1a3a;
+      color: #ff6b6b;
+      font-weight: 600;
+    }
+    tr:hover { background: #3a3a5a; }
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+    }
+    .status-active { background: #28a745; color: #fff; }
+    .status-inactive { background: #6c757d; color: #fff; }
+    .role-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      background: #4a4a6a;
+    }
+    .role-admin { background: #dc3545; }
+    .role-editor { background: #ffc107; color: #000; }
+    .role-viewer { background: #17a2b8; }
+    .actions { display: flex; gap: 8px; }
+    .btn-sm { padding: 4px 8px; font-size: 0.8rem; }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: #2a2a4a;
+      border-radius: 8px;
+      padding: 24px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-header h2 { font-size: 1.3rem; color: #ff6b6b; }
+    .modal-close {
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .modal-close:hover { color: #fff; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: #aaa;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px;
+      background: #1a1a3a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #eee;
+      font-size: 0.9rem;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #ff6b6b;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+      background: #1a1a3a;
+      border-radius: 4px;
+      border: 1px solid #444;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .checkbox-item input[type="checkbox"] {
+      width: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>👥 用户管理</h1>
+    <div class="header-actions">
+      <button class="btn" onclick="window.location.href='/'">返回首页</button>
+      <button class="btn" onclick="window.location.href='/admin/namespaces.html'">命名空间管理</button>
+      <div class="user-menu" id="userMenu">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar"></div>
+          <span id="userName"></span>
+          <span id="userRole" style="color: #666; font-size: 0.8rem;"></span>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">退出</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h2>用户列表</h2>
+      <button class="btn btn-primary" onclick="openCreateModal()">+ 创建用户</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>用户名</th>
+          <th>显示名称</th>
+          <th>邮箱</th>
+          <th>角色</th>
+          <th>命名空间</th>
+          <th>状态</th>
+          <th>最后登录</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="userTableBody">
+        <tr><td colspan="9" style="text-align: center;">加载中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Create/Edit User Modal -->
+  <div class="modal" id="userModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">创建用户</h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <form id="userForm" onsubmit="handleFormSubmit(event)">
+        <input type="hidden" id="userId">
+        <div class="form-row">
+          <div class="form-group">
+            <label>用户名 *</label>
+            <input type="text" id="username" required placeholder="请输入用户名">
+          </div>
+          <div class="form-group">
+            <label>显示名称</label>
+            <input type="text" id="display_name" placeholder="请输入显示名称">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>邮箱</label>
+          <input type="email" id="email" placeholder="请输入邮箱">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>密码 <span id="passwordNote">*</span></label>
+            <input type="password" id="password" placeholder="至少 6 位">
+          </div>
+          <div class="form-group">
+            <label>角色</label>
+            <select id="role_id">
+              <option value="1">管理员 (Admin)</option>
+              <option value="2" selected>编辑 (Editor)</option>
+              <option value="3">查看者 (Viewer)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>默认命名空间</label>
+          <select id="namespace_id">
+            <option value="">请选择命名空间</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>可访问的命名空间</label>
+          <div class="checkbox-group" id="namespaceCheckboxes">
+            <!-- 由 JS 动态生成 -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" onclick="closeModal()">取消</button>
+          <button type="submit" class="btn btn-primary">确定</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { AuthService, ApiClient } from '../js/auth.js';
+
+    window.auth = new AuthService();
+    window.auth.api = new ApiClient(window.auth);
+
+    // 检查登录状态
+    async function checkAuth() {
+      try {
+        const user = await auth.checkAuth();
+        if (user.role !== 'admin') {
+          alert('需要管理员权限');
+          window.location.href = '/';
+          return;
+        }
+        showUserMenu(user);
+        loadUsers();
+        loadNamespaces();
+      } catch (err) {
+        window.location.href = '/login.html';
+      }
+    }
+
+    function showUserMenu(user) {
+      document.getElementById('userMenu').style.display = 'flex';
+      document.getElementById('userAvatar').textContent = (user.display_name || user.username)[0].toUpperCase();
+      document.getElementById('userName').textContent = user.display_name || user.username;
+      document.getElementById('userRole').textContent = {
+        'admin': '管理员',
+        'editor': '编辑',
+        'viewer': '查看者'
+      }[user.role] || user.role;
+    }
+
+    // 加载用户列表
+    async function loadUsers() {
+      try {
+        const users = await auth.api.get('/api/users');
+        const tbody = document.getElementById('userTableBody');
+        tbody.innerHTML = users.map(user => `
+          <tr>
+            <td>${user.id}</td>
+            <td>${user.username}</td>
+            <td>${user.display_name || '-'}</td>
+            <td>${user.email || '-'}</td>
+            <td><span class="role-badge role-${user.role}">${user.role}</span></td>
+            <td>${user.namespace_name || '-'}</td>
+            <td><span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">${user.is_active ? '激活' : '停用'}</span></td>
+            <td>${user.last_login_at ? new Date(user.last_login_at).toLocaleString('zh-CN') : '-'}</td>
+            <td class="actions">
+              <button class="btn btn-sm" onclick="editUser(${user.id})">编辑</button>
+              ${user.id !== auth.getUser().id ? `<button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">删除</button>` : ''}
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error('Failed to load users:', err);
+        document.getElementById('userTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; color: #dc3545;">加载失败</td></tr>';
+      }
+    }
+
+    // 加载命名空间
+    async function loadNamespaces() {
+      try {
+        const namespaces = await auth.api.get('/api/namespaces/available');
+        const select = document.getElementById('namespace_id');
+        const checkboxes = document.getElementById('namespaceCheckboxes');
+
+        select.innerHTML = '<option value="">请选择命名空间</option>' +
+          namespaces.map(ns => `<option value="${ns.id}">${ns.name}</option>`).join('');
+
+        checkboxes.innerHTML = namespaces.map(ns => `
+          <label class="checkbox-item">
+            <input type="checkbox" name="namespaces" value="${ns.id}">
+            ${ns.name}
+          </label>
+        `).join('');
+      } catch (err) {
+        console.error('Failed to load namespaces:', err);
+      }
+    }
+
+    // 打开创建用户对话框
+    window.openCreateModal = function() {
+      document.getElementById('modalTitle').textContent = '创建用户';
+      document.getElementById('userForm').reset();
+      document.getElementById('userId').value = '';
+      document.getElementById('password').required = true;
+      document.getElementById('passwordNote').textContent = '*';
+      document.getElementById('userModal').classList.add('active');
+    }
+
+    // 编辑用户
+    window.editUser = async function(id) {
+      try {
+        const user = await auth.api.get(`/api/users/${id}`);
+        document.getElementById('modalTitle').textContent = '编辑用户';
+        document.getElementById('userId').value = user.id;
+        document.getElementById('username').value = user.username;
+        document.getElementById('display_name').value = user.display_name || '';
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('role_id').value = user.role_id;
+        document.getElementById('namespace_id').value = user.namespace_id || '';
+        document.getElementById('password').required = false;
+        document.getElementById('passwordNote').textContent = '(留空则不修改)';
+
+        // 设置命名空间复选框
+        const userNamespaceIds = user.namespaces ? user.namespaces.map(n => n.id) : [];
+        document.querySelectorAll('#namespaceCheckboxes input[type="checkbox"]').forEach(cb => {
+          cb.checked = userNamespaceIds.includes(parseInt(cb.value));
+        });
+
+        document.getElementById('userModal').classList.add('active');
+      } catch (err) {
+        alert('加载用户信息失败：' + err.message);
+      }
+    }
+
+    // 关闭对话框
+    window.closeModal = function() {
+      document.getElementById('userModal').classList.remove('active');
+      document.getElementById('userForm').reset();
+    }
+
+    // 处理表单提交
+    window.handleFormSubmit = async function(event) {
+      event.preventDefault();
+
+      const userId = document.getElementById('userId').value;
+      const data = {
+        username: document.getElementById('username').value,
+        display_name: document.getElementById('display_name').value,
+        email: document.getElementById('email').value,
+        role_id: parseInt(document.getElementById('role_id').value),
+        namespace_id: parseInt(document.getElementById('namespace_id').value) || null
+      };
+
+      const password = document.getElementById('password').value;
+      if (password) {
+        data.password = password;
+      }
+
+      // 获取选中的命名空间
+      const namespaces = [];
+      document.querySelectorAll('#namespaceCheckboxes input[type="checkbox"]:checked').forEach(cb => {
+        namespaces.push(parseInt(cb.value));
+      });
+      data.namespaces = namespaces;
+
+      try {
+        if (userId) {
+          await auth.api.put(`/api/users/${userId}`, data);
+        } else {
+          await auth.api.post('/api/users', data);
+        }
+        closeModal();
+        loadUsers();
+      } catch (err) {
+        alert('操作失败：' + err.message);
+      }
+    }
+
+    // 删除用户
+    window.deleteUser = async function(id) {
+      if (!confirm('确定要删除此用户吗？')) return;
+
+      try {
+        await auth.api.delete(`/api/users/${id}`);
+        loadUsers();
+      } catch (err) {
+        alert('删除失败：' + err.message);
+      }
+    }
+
+    // 处理退出登录
+    window.handleLogout = async function() {
+      try {
+        await auth.logout();
+      } catch (err) {
+        auth.clearAuth();
+        window.location.href = '/login.html';
+      }
+    }
+
+    // 初始化
+    checkAuth();
+  </script>
+</body>
+</html>

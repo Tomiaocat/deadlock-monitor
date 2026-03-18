@@ -1,18 +1,47 @@
 version: '3.8'
 
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: deadlock-mysql
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=deadlock_monitor
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
+    networks:
+      - deadlock-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   deadlock-monitor:
-    image: ghcr.io/your-username/deadlock-monitor:latest
+    build: .
     container_name: deadlock-monitor
     ports:
-      - "3000:3000"
+      - "9527:9527"
     environment:
-      - PORT=3000
-      - DB_HOST=host.docker.internal
+      - PORT=9527
+      - DB_HOST=mysql
       - DB_PORT=3306
       - DB_USER=root
       - DB_PASSWORD=root
       - DB_NAME=deadlock_monitor
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - deadlock-net
     restart: unless-stopped
-    # 如果无法访问 host.docker.internal，使用 host 网络模式
-    # network_mode: host
+
+networks:
+  deadlock-net:
+    driver: bridge
+
+volumes:
+  mysql_data:

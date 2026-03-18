@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>命名空间管理 - 死锁监控</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+      background: #1a1a2e;
+      color: #eee;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #333;
+    }
+    .header h1 { font-size: 1.5rem; color: #ff6b6b; }
+    .header-actions { display: flex; gap: 15px; align-items: center; }
+    .btn {
+      background: #444;
+      color: #eee;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .btn:hover { background: #555; }
+    .btn-primary { background: #ff6b6b; color: #fff; }
+    .btn-primary:hover { background: #ee5a5a; }
+    .btn-danger { background: #dc3545; color: #fff; }
+    .btn-danger:hover { background: #c82333; }
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+    .user-info { display: flex; align-items: center; gap: 8px; }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #ff6b6b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+    .logout-btn {
+      background: transparent;
+      border: 1px solid #444;
+      color: #aaa;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .logout-btn:hover { background: #333; color: #eee; }
+
+    /* Table Styles */
+    .table-container {
+      background: #2a2a4a;
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #3a3a5a;
+    }
+    th {
+      background: #1a1a3a;
+      color: #ff6b6b;
+      font-weight: 600;
+    }
+    tr:hover { background: #3a3a5a; }
+    .actions { display: flex; gap: 8px; }
+    .btn-sm { padding: 4px 8px; font-size: 0.8rem; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+    .badge-default { background: #28a745; color: #fff; }
+    .count-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      background: #4a4a6a;
+      color: #aaa;
+      margin-left: 4px;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: #2a2a4a;
+      border-radius: 8px;
+      padding: 24px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-header h2 { font-size: 1.3rem; color: #ff6b6b; }
+    .modal-close {
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .modal-close:hover { color: #fff; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: #aaa;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      background: #1a1a3a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #eee;
+      font-size: 0.9rem;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: #ff6b6b;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .help-text {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📁 命名空间管理</h1>
+    <div class="header-actions">
+      <button class="btn" onclick="window.location.href='/'">返回首页</button>
+      <button class="btn" onclick="window.location.href='/admin/users.html'">用户管理</button>
+      <div class="user-menu" id="userMenu">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar"></div>
+          <span id="userName"></span>
+          <span id="userRole" style="color: #666; font-size: 0.8rem;"></span>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">退出</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h2>命名空间列表</h2>
+      <button class="btn btn-primary" onclick="openCreateModal()">+ 创建命名空间</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>名称</th>
+          <th>代码</th>
+          <th>描述</th>
+          <th>所有者</th>
+          <th>任务数</th>
+          <th>死锁数</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="namespaceTableBody">
+        <tr><td colspan="8" style="text-align: center;">加载中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Create/Edit Namespace Modal -->
+  <div class="modal" id="namespaceModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">创建命名空间</h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <form id="namespaceForm" onsubmit="handleFormSubmit(event)">
+        <input type="hidden" id="namespaceId">
+        <div class="form-group">
+          <label>名称 *</label>
+          <input type="text" id="name" required placeholder="请输入名称">
+        </div>
+        <div class="form-group">
+          <label>代码 *</label>
+          <input type="text" id="code" required placeholder="请输入代码（英文小写）" pattern="[a-z0-9_-]+" title="只能使用小写字母、数字、下划线和短横线">
+          <div class="help-text">唯一标识符，只能使用小写字母、数字、下划线和短横线</div>
+        </div>
+        <div class="form-group">
+          <label>描述</label>
+          <textarea id="description" placeholder="请输入描述"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" onclick="closeModal()">取消</button>
+          <button type="submit" class="btn btn-primary">确定</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { AuthService, ApiClient } from '../js/auth.js';
+
+    window.auth = new AuthService();
+    window.auth.api = new ApiClient(window.auth);
+
+    // 检查登录状态
+    async function checkAuth() {
+      try {
+        const user = await auth.checkAuth();
+        if (user.role !== 'admin') {
+          alert('需要管理员权限');
+          window.location.href = '/';
+          return;
+        }
+        showUserMenu(user);
+        loadNamespaces();
+      } catch (err) {
+        window.location.href = '/login.html';
+      }
+    }
+
+    function showUserMenu(user) {
+      document.getElementById('userMenu').style.display = 'flex';
+      document.getElementById('userAvatar').textContent = (user.display_name || user.username)[0].toUpperCase();
+      document.getElementById('userName').textContent = user.display_name || user.username;
+      document.getElementById('userRole').textContent = {
+        'admin': '管理员',
+        'editor': '编辑',
+        'viewer': '查看者'
+      }[user.role] || user.role;
+    }
+
+    // 加载命名空间列表
+    async function loadNamespaces() {
+      try {
+        const namespaces = await auth.api.get('/api/namespaces');
+        const tbody = document.getElementById('namespaceTableBody');
+        tbody.innerHTML = namespaces.map(ns => `
+          <tr>
+            <td>${ns.id}</td>
+            <td>${ns.name}</td>
+            <td><code>${ns.code}</code></td>
+            <td>${ns.description || '-'}</td>
+            <td>${ns.owner_username || '-'}</td>
+            <td>
+              ${ns.task_count !== undefined ? ns.task_count : '-'}
+              ${ns.task_count > 0 ? '<span class="count-badge">任务</span>' : ''}
+            </td>
+            <td>
+              ${ns.deadlock_count !== undefined ? ns.deadlock_count : '-'}
+              ${ns.deadlock_count > 0 ? '<span class="count-badge">记录</span>' : ''}
+            </td>
+            <td class="actions">
+              <button class="btn btn-sm" onclick="editNamespace(${ns.id})">编辑</button>
+              ${!ns.is_default ? `<button class="btn btn-sm btn-danger" onclick="deleteNamespace(${ns.id})">删除</button>` : '<span class="badge badge-default">默认</span>'}
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error('Failed to load namespaces:', err);
+        document.getElementById('namespaceTableBody').innerHTML = '<tr><td colspan="8" style="text-align: center; color: #dc3545;">加载失败</td></tr>';
+      }
+    }
+
+    // 打开创建命名空间对话框
+    window.openCreateModal = function() {
+      document.getElementById('modalTitle').textContent = '创建命名空间';
+      document.getElementById('namespaceForm').reset();
+      document.getElementById('namespaceId').value = '';
+      document.getElementById('namespaceModal').classList.add('active');
+    }
+
+    // 编辑命名空间
+    window.editNamespace = async function(id) {
+      try {
+        const ns = await auth.api.get(`/api/namespaces/${id}`);
+        document.getElementById('modalTitle').textContent = '编辑命名空间';
+        document.getElementById('namespaceId').value = ns.id;
+        document.getElementById('name').value = ns.name;
+        document.getElementById('code').value = ns.code;
+        document.getElementById('description').value = ns.description || '';
+        document.getElementById('namespaceModal').classList.add('active');
+      } catch (err) {
+        alert('加载命名空间信息失败：' + err.message);
+      }
+    }
+
+    // 关闭对话框
+    window.closeModal = function() {
+      document.getElementById('namespaceModal').classList.remove('active');
+      document.getElementById('namespaceForm').reset();
+    }
+
+    // 处理表单提交
+    window.handleFormSubmit = async function(event) {
+      event.preventDefault();
+
+      const namespaceId = document.getElementById('namespaceId').value;
+      const data = {
+        name: document.getElementById('name').value,
+        code: document.getElementById('code').value,
+        description: document.getElementById('description').value
+      };
+
+      try {
+        if (namespaceId) {
+          await auth.api.put(`/api/namespaces/${namespaceId}`, data);
+        } else {
+          await auth.api.post('/api/namespaces', data);
+        }
+        closeModal();
+        loadNamespaces();
+      } catch (err) {
+        alert('操作失败：' + err.message);
+      }
+    }
+
+    // 删除命名空间
+    window.deleteNamespace = async function(id) {
+      if (!confirm('确定要删除此命名空间吗？删除后该命名空间下的所有数据将无法恢复！')) return;
+
+      try {
+        await auth.api.delete(`/api/namespaces/${id}`);
+        loadNamespaces();
+      } catch (err) {
+        alert('删除失败：' + err.message);
+      }
+    }
+
+    // 初始化
+    checkAuth();
+
+    // 处理退出登录
+    window.handleLogout = async function() {
+      try {
+        await auth.logout();
+      } catch (err) {
+        auth.clearAuth();
+        window.location.href = '/login.html';
+      }
+    };
+  </script>
+</body>
+</html>

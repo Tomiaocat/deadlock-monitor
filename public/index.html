@@ -21,6 +21,85 @@
       border-bottom: 1px solid #333;
     }
     .header h1 { font-size: 1.5rem; color: #ff6b6b; }
+    .header-left { display: flex; align-items: center; gap: 20px; }
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #ff6b6b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+    .namespace-select {
+      background: #2a2a4a;
+      color: #eee;
+      border: 1px solid #444;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    .logout-btn {
+      background: transparent;
+      border: 1px solid #444;
+      color: #aaa;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .logout-btn:hover { background: #333; color: #eee; }
+
+    /* 管理员下拉菜单 */
+    .admin-menu-container {
+      position: relative;
+      display: inline-block;
+    }
+    #adminDropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 100%;
+      margin-top: 4px;
+      background: #2a2a4a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 1000;
+      min-width: 140px;
+    }
+    #adminDropdown.active {
+      display: block;
+    }
+    #adminDropdown a {
+      display: block;
+      padding: 10px 16px;
+      color: #eee;
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-bottom: 1px solid #3a3a5a;
+    }
+    #adminDropdown a:last-child {
+      border-bottom: none;
+    }
+    #adminDropdown a:hover {
+      background: #3a3a5a;
+    }
     .controls { display: flex; gap: 15px; align-items: center; }
     .refresh-interval { display: flex; align-items: center; gap: 8px; }
     .refresh-interval select {
@@ -56,6 +135,118 @@
     #toggleBtn:hover { background: #555; }
     #toggleBtn.paused { background: #ff9800; color: #000; }
 
+    /* Tabs */
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+    .tab {
+      background: #2a2a4a;
+      color: #aaa;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .tab:hover { background: #3a3a5a; color: #eee; }
+    .tab.active { background: #4a4a6a; color: #fff; }
+
+    /* Task Management */
+    .task-panel {
+      background: #2a2a4a;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .task-panel h2 {
+      font-size: 1.2rem;
+      color: #ff6b6b;
+      margin-bottom: 15px;
+    }
+    .task-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: 0.8rem; color: #888; }
+    .form-group input, .form-group select {
+      background: #1a1a2e;
+      color: #eee;
+      border: 1px solid #444;
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #ff6b6b;
+    }
+    .btn {
+      background: #4a4a6a;
+      color: #eee;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: #5a5a7a; }
+    .btn-primary { background: #4caf50; color: #fff; }
+    .btn-primary:hover { background: #5caf60; }
+    .btn-danger { background: #ff6b6b; color: #fff; }
+    .btn-danger:hover { background: #ff7b7b; }
+    .btn-warning { background: #ff9800; color: #000; }
+    .btn-warning:hover { background: #ffaa20; }
+    .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
+
+    /* Task List */
+    .task-list { display: flex; flex-direction: column; gap: 10px; }
+    .task-item {
+      background: #1a1a2e;
+      border-radius: 6px;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #3a3a5a;
+    }
+    .task-info { display: flex; flex-direction: column; gap: 5px; }
+    .task-name { font-size: 1rem; color: #fff; font-weight: bold; }
+    .task-detail { font-size: 0.8rem; color: #888; }
+    .task-status {
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+    .task-status.active { background: #4caf50; color: #000; }
+    .task-status.paused { background: #ff9800; color: #000; }
+    .task-status.stopped { background: #ff6b6b; color: #fff; }
+    .task-actions { display: flex; gap: 8px; }
+
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #2a2a4a;
+      border-radius: 8px;
+    }
+    .filter-bar label { font-size: 0.85rem; color: #aaa; }
+    .filter-bar select {
+      background: #1a1a2e;
+      color: #eee;
+      border: 1px solid #444;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    /* Deadlock List */
     .deadlock-list { display: flex; flex-direction: column; gap: 20px; }
     .deadlock-card {
       background: #2a2a4a;
@@ -136,14 +327,38 @@
       padding: 40px;
       color: #888;
     }
+    .hidden { display: none; }
     @media (max-width: 900px) {
       .threads-container { grid-template-columns: 1fr; }
+      .header, .filter-bar, .task-item { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .controls, .task-actions { flex-wrap: wrap; }
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>🔒 死锁监控</h1>
+    <div class="header-left">
+      <h1>🔒 死锁监控系统</h1>
+      <div class="user-menu" id="userMenu" style="display: none;">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar"></div>
+          <span id="userName"></span>
+          <span id="userRole" style="color: #666; font-size: 0.8rem;"></span>
+        </div>
+        <select class="namespace-select" id="namespaceSelect" onchange="switchNamespace()">
+          <option value="">加载中...</option>
+        </select>
+        <button class="logout-btn" onclick="handleLogout()">退出</button>
+        <!-- 管理员菜单 -->
+        <div class="admin-menu-container" style="position: relative; display: none;" id="adminMenuContainer">
+          <button class="logout-btn" id="adminMenuBtn">管理</button>
+          <div id="adminDropdown">
+            <a href="/admin/users.html">用户管理</a>
+            <a href="/admin/namespaces.html">命名空间管理</a>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="controls">
       <div class="refresh-interval">
         <label>刷新:</label>
@@ -163,21 +378,430 @@
     </div>
   </div>
 
-  <div id="deadlockList" class="deadlock-list">
-    <div class="loading">加载中...</div>
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="deadlocks">实时死锁</button>
+    <button class="tab" data-tab="history">历史记录</button>
+    <button class="tab" data-tab="tasks">监控任务</button>
   </div>
 
-  <script>
+  <!-- Deadlocks Tab -->
+  <div id="deadlocksTab">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <label>数据源:</label>
+      <select id="sourceFilter">
+        <option value="">全部</option>
+      </select>
+      <button class="btn" onclick="loadSources()">刷新源列表</button>
+    </div>
+
+    <div id="deadlockList" class="deadlock-list">
+      <div class="loading">加载中...</div>
+    </div>
+  </div>
+
+  <!-- History Tab -->
+  <div id="historyTab" class="hidden">
+    <!-- Search Panel -->
+    <div class="task-panel">
+      <h2>搜索历史死锁记录</h2>
+      <form id="searchForm" class="task-form">
+        <!-- Row 1 -->
+        <div class="form-group">
+          <label>目标服务器</label>
+          <input type="text" name="server" list="serverList" placeholder="搜索或输入">
+          <datalist id="serverList"></datalist>
+        </div>
+        <div class="form-group">
+          <label>锁类型</label>
+          <select name="lock_type" id="lockTypeSelect">
+            <option value="">全部</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>锁模式</label>
+          <select name="lock_mode" id="lockModeSelect">
+            <option value="">全部</option>
+          </select>
+        </div>
+        <!-- Row 2 -->
+        <div class="form-group">
+          <label>表名</label>
+          <input type="text" name="tbl" placeholder="支持模糊搜索">
+        </div>
+        <div class="form-group">
+          <label>索引</label>
+          <input type="text" name="idx" placeholder="支持模糊搜索">
+        </div>
+        <div class="form-group">
+          <label>数据库名</label>
+          <input type="text" name="db" placeholder="支持模糊搜索">
+        </div>
+        <!-- Row 3 -->
+        <div class="form-group">
+          <label>客户端 IP</label>
+          <input type="text" name="ip" placeholder="192.168.1.100">
+        </div>
+        <div class="form-group">
+          <label>客户端主机名</label>
+          <input type="text" name="hostname" placeholder="支持模糊搜索">
+        </div>
+        <div class="form-group">
+          <label>数据库用户</label>
+          <input type="text" name="user" placeholder="用户名">
+        </div>
+        <!-- Row 4 -->
+        <div class="form-group">
+          <label>锁状态</label>
+          <select name="wait_hold">
+            <option value="">全部</option>
+            <option value="W">等待中 (W)</option>
+            <option value="H">已持有 (H)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>是否牺牲品</label>
+          <select name="victim">
+            <option value="">全部</option>
+            <option value="1">是</option>
+            <option value="0">否</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>日期范围</label>
+          <div style="display: flex; gap: 5px;">
+            <input type="datetime-local" name="date_from" placeholder="开始日期" style="flex: 1;">
+            <input type="datetime-local" name="date_to" placeholder="结束日期" style="flex: 1;">
+          </div>
+        </div>
+        <!-- Row 5 -->
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label>SQL 全文搜索</label>
+          <input type="text" name="query" placeholder="搜索 SQL 语句片段">
+        </div>
+      </form>
+
+      <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" class="btn btn-primary" onclick="searchHistory()">搜索</button>
+        <button type="button" class="btn" onclick="resetSearch()">重置</button>
+        <button type="button" class="btn" onclick="exportHistory()">导出 CSV</button>
+        <span id="searchResultInfo" style="color: #888; margin-left: auto; align-self: center;"></span>
+      </div>
+    </div>
+
+    <!-- Result Panel -->
+    <div class="task-panel">
+      <h2>搜索结果</h2>
+      <div id="historyList" class="deadlock-list">
+        <div class="no-deadlocks">请输入搜索条件后点击搜索</div>
+      </div>
+      <!-- Pagination -->
+      <div id="pagination" class="hidden" style="margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 10px;">
+        <button class="btn btn-sm" onclick="goToPage(1)" id="firstPage">首页</button>
+        <button class="btn btn-sm" onclick="goToPage(currentPage - 1)" id="prevPage">上一页</button>
+        <span id="pageInfo" style="color: #888;"></span>
+        <button class="btn btn-sm" onclick="goToPage(currentPage + 1)" id="nextPage">下一页</button>
+        <button class="btn btn-sm" onclick="goToPage(totalPages)" id="lastPage">末页</button>
+        <select id="pageSizeSelect" onchange="changePageSize()" style="background: #2a2a4a; color: #eee; border: 1px solid #444; padding: 5px 10px; border-radius: 4px;">
+          <option value="20">20 条/页</option>
+          <option value="50" selected>50 条/页</option>
+          <option value="100">100 条/页</option>
+          <option value="200">200 条/页</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tasks Tab -->
+  <div id="tasksTab" class="hidden">
+    <div class="task-panel">
+      <h2>添加监控任务</h2>
+      <form id="taskForm" class="task-form">
+        <div class="form-group">
+          <label>任务名称 *</label>
+          <input type="text" name="name" required placeholder="例如：MySQL-Prod-01">
+        </div>
+        <div class="form-group">
+          <label>目标主机 *</label>
+          <input type="text" name="target_host" required placeholder="192.168.1.100">
+        </div>
+        <div class="form-group">
+          <label>目标端口</label>
+          <input type="number" name="target_port" value="3306" placeholder="3306">
+        </div>
+        <div class="form-group">
+          <label>目标用户名 *</label>
+          <input type="text" name="target_user" required placeholder="monitor">
+        </div>
+        <div class="form-group">
+          <label>目标密码 *</label>
+          <input type="password" name="target_password" required placeholder="密码">
+        </div>
+        <div class="form-group">
+          <label>监控周期 (秒)</label>
+          <select name="interval">
+            <option value="5">5 秒</option>
+            <option value="10" selected>10 秒</option>
+            <option value="30">30 秒</option>
+            <option value="60">60 秒</option>
+            <option value="120">120 秒</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>存储类型</label>
+          <select name="storage_type" id="storageType" onchange="toggleRemoteConfig()">
+            <option value="local" selected>本地 MySQL</option>
+            <option value="remote">外部 MySQL</option>
+          </select>
+        </div>
+      </form>
+
+      <!-- Remote Storage Config -->
+      <div id="remoteConfig" class="task-form hidden" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
+        <div class="form-group">
+          <label>远程主机</label>
+          <input type="text" name="remote_host" placeholder="192.168.1.200">
+        </div>
+        <div class="form-group">
+          <label>远程端口</label>
+          <input type="number" name="remote_port" value="3306">
+        </div>
+        <div class="form-group">
+          <label>远程用户名</label>
+          <input type="text" name="remote_user" placeholder="root">
+        </div>
+        <div class="form-group">
+          <label>远程密码</label>
+          <input type="password" name="remote_password" placeholder="密码">
+        </div>
+        <div class="form-group">
+          <label>远程数据库</label>
+          <input type="text" name="remote_db" placeholder="deadlock_monitor">
+        </div>
+        <div class="form-group">
+          <label>远程表名</label>
+          <input type="text" name="remote_table" value="deadlocks">
+        </div>
+      </div>
+
+      <div style="margin-top: 15px;">
+        <button type="button" class="btn btn-primary" onclick="createTask()">创建任务</button>
+        <button type="button" class="btn" onclick="showCreateTableSQL()">查看建表语句</button>
+      </div>
+    </div>
+
+    <div class="task-panel">
+      <h2>任务列表</h2>
+      <div id="taskList" class="task-list">
+        <div class="loading">加载中...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SQL Modal -->
+  <div id="sqlModal" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: #2a2a4a; padding: 20px; border-radius: 8px; max-width: 800px; width: 90%; max-height: 80vh; overflow: auto;">
+      <h3 style="color: #ff6b6b; margin-bottom: 15px;">死锁数据表结构</h3>
+      <pre class="query-box" style="white-space: pre-wrap; word-break: break-all; max-height: 400px; overflow-y: auto;"></pre>
+      <button class="btn" onclick="closeSqlModal()" style="margin-top: 15px;">关闭</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, api } from './js/auth.js';
+
+    // Auth guard - check authentication on page load
+    async function checkAuth() {
+      if (!auth.isAuthenticated()) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      try {
+        const user = await auth.fetchCurrentUser();
+        showUserMenu(user);
+        await loadNamespaces();
+      } catch (err) {
+        console.error('Auth check failed:', err);
+        window.location.href = '/login.html';
+      }
+    }
+
+    function showUserMenu(user) {
+      const userMenu = document.getElementById('userMenu');
+      const userAvatar = document.getElementById('userAvatar');
+      const userName = document.getElementById('userName');
+      const userRole = document.getElementById('userRole');
+      const adminMenuContainer = document.getElementById('adminMenuContainer');
+
+      if (userMenu) userMenu.style.display = 'flex';
+      if (userAvatar) userAvatar.textContent = (user.display_name || user.username)[0].toUpperCase();
+      if (userName) userName.textContent = user.display_name || user.username;
+      if (userRole) userRole.textContent = {
+        'admin': '管理员',
+        'editor': '编辑',
+        'viewer': '查看者'
+      }[user.role] || user.role;
+
+      // 显示管理员菜单
+      if (user.role === 'admin' && adminMenuContainer) {
+        adminMenuContainer.style.display = 'inline-block';
+      }
+    }
+
+    // 管理员按钮点击事件（只绑定一次）
+    document.addEventListener('DOMContentLoaded', function() {
+      const adminBtn = document.getElementById('adminMenuBtn');
+      const adminDropdown = document.getElementById('adminDropdown');
+      const adminContainer = document.getElementById('adminMenuContainer');
+
+      if (adminBtn && adminDropdown && adminContainer) {
+        adminBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          adminDropdown.classList.toggle('active');
+        });
+
+        // 点击页面其他地方关闭下拉菜单
+        document.addEventListener('click', function(e) {
+          if (!adminContainer.contains(e.target)) {
+            adminDropdown.classList.remove('active');
+          }
+        });
+      }
+    });
+
+    // 处理退出登录
+    window.handleLogout = async function() {
+      try {
+        await auth.logout();
+      } catch (err) {
+        // 即使请求失败也清除本地数据并跳转
+        auth.clearAuth();
+        window.location.href = '/login.html';
+      }
+    };
+
+    async function loadNamespaces() {
+      try {
+        const namespaces = await api.get('/api/namespaces/available');
+        const select = document.getElementById('namespaceSelect');
+        if (select) {
+          select.innerHTML = namespaces.map(ns =>
+            `<option value="${ns.id}" ${ns.id === auth.getUser().namespace_id ? 'selected' : ''}>${ns.name}</option>`
+          ).join('');
+        }
+      } catch (err) {
+        console.error('Failed to load namespaces:', err);
+      }
+    }
+
+    async function switchNamespace() {
+      const select = document.getElementById('namespaceSelect');
+      const namespaceId = parseInt(select.value);
+
+      try {
+        await auth.switchNamespace(namespaceId);
+        window.location.reload();
+      } catch (err) {
+        alert('切换命名空间失败：' + err.message);
+        select.value = auth.getUser().namespace_id;
+      }
+    }
+
+    // ============================================
+    // Global Variables
+    // ============================================
     let refreshInterval = 10000;
     let isPaused = false;
     let timer = null;
     let latestTs = null;
+    let currentSource = '';
+    let listEl = null;
+    let intervalSelect = null;
+    let toggleBtn = null;
+    let statusDot = null;
+    let statusText = null;
+    let sourceFilter = null;
+    // History pagination variables
+    let currentPage = 1;
+    let totalPages = 1;
+    let pageSize = 50;
+    let currentFilters = {};
 
-    const listEl = document.getElementById('deadlockList');
-    const intervalSelect = document.getElementById('refreshInterval');
-    const toggleBtn = document.getElementById('toggleBtn');
-    const statusDot = document.getElementById('statusDot');
-    const statusText = document.getElementById('statusText');
+    // Main initialization - run after DOM is ready
+    document.addEventListener('DOMContentLoaded', async function() {
+      // Run auth check first
+      await checkAuth();
+
+      // Initialize DOM elements
+      listEl = document.getElementById('deadlockList');
+      intervalSelect = document.getElementById('refreshInterval');
+      toggleBtn = document.getElementById('toggleBtn');
+      statusDot = document.getElementById('statusDot');
+      statusText = document.getElementById('statusText');
+      sourceFilter = document.getElementById('sourceFilter');
+
+      // Tab switching
+      document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const tabName = tab.dataset.tab;
+        document.getElementById('deadlocksTab').classList.toggle('hidden', tabName !== 'deadlocks');
+        document.getElementById('historyTab').classList.toggle('hidden', tabName !== 'history');
+        document.getElementById('tasksTab').classList.toggle('hidden', tabName !== 'tasks');
+        if (tabName === 'tasks') {
+          loadTasks();
+        } else if (tabName === 'history') {
+          loadHistoryFilters();
+        } else {
+          fetchDeadlocks();
+        }
+      });
+    });
+
+    function toggleRemoteConfig() {
+      const storageType = document.getElementById('storageType').value;
+      const remoteConfig = document.getElementById('remoteConfig');
+      remoteConfig.classList.toggle('hidden', storageType !== 'remote');
+    }
+
+    function showCreateTableSQL() {
+      const sql = `CREATE TABLE deadlocks (
+  server char(20) NOT NULL,
+  ts timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  thread int(10) unsigned NOT NULL,
+  txn_id bigint(20) unsigned NOT NULL,
+  txn_time smallint(5) unsigned NOT NULL,
+  user char(16) NOT NULL,
+  hostname char(20) NOT NULL,
+  ip char(15) NOT NULL,
+  db char(64) NOT NULL,
+  tbl char(64) NOT NULL,
+  idx char(64) NOT NULL,
+  lock_type char(16) NOT NULL,
+  lock_mode char(1) NOT NULL,
+  wait_hold char(1) NOT NULL,
+  victim tinyint(3) unsigned NOT NULL,
+  query longtext NOT NULL,
+  PRIMARY KEY (server, ts, thread),
+  KEY idx_server (server),
+  KEY idx_ts (ts),
+  KEY idx_victim (victim),
+  KEY idx_tbl (tbl)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`;
+      document.querySelector('#sqlModal .query-box').textContent = sql;
+      const modal = document.getElementById('sqlModal');
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+    }
+
+    function closeSqlModal() {
+      const modal = document.getElementById('sqlModal');
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    }
 
     function formatThreadInfo(r) {
       return `线程：${r.thread} | 库：${r.db} | 表：${r.tbl} | 索引：${r.idx} | 锁：${formatLockType(r.lock_type)}/${formatLockMode(r.lock_mode)} | 状态：${formatWaitHold(r.wait_hold)}`;
@@ -236,6 +860,7 @@
               <span>📊 表：<strong>${dl.table}</strong></span>
               <span>🔑 索引：<strong>${dl.index}</strong></span>
               <span>🔐 锁：<strong>${lockTypeCn} / ${lockModeCn}</strong></span>
+              <span>🌐 源：<strong>${dl.source_server || '-'}</strong></span>
             </div>
             <span class="victim-badge">牺牲者：线程 ${dl.victim.thread}</span>
           </div>
@@ -289,8 +914,8 @@
 
     async function fetchDeadlocks() {
       try {
-        const res = await fetch('/api/deadlocks');
-        const data = await res.json();
+        const query = currentSource ? `?source=${encodeURIComponent(currentSource)}` : '';
+        const data = await api.get('/api/deadlocks' + query);
 
         if (data.error) {
           listEl.innerHTML = `<div class="no-deadlocks">错误：${data.error}</div>`;
@@ -320,6 +945,195 @@
         }
       } catch (err) {
         listEl.innerHTML = `<div class="no-deadlocks">加载失败：${err.message}</div>`;
+      }
+    }
+
+    // Load source servers for filtering
+    async function loadSources() {
+      try {
+        const sources = await api.get('/api/tasks/sources');
+
+        sourceFilter.innerHTML = '<option value="">全部</option>';
+        sources.forEach(src => {
+          const opt = document.createElement('option');
+          opt.value = src;
+          opt.textContent = src;
+          sourceFilter.appendChild(opt);
+        });
+
+        if (currentSource && sources.includes(currentSource)) {
+          sourceFilter.value = currentSource;
+        }
+      } catch (err) {
+        console.error('Failed to load sources:', err);
+      }
+    }
+
+    // Source filter change
+    sourceFilter.addEventListener('change', () => {
+      currentSource = sourceFilter.value;
+      fetchDeadlocks();
+    });
+
+    // Task management functions
+    async function loadTasks() {
+      const taskListEl = document.getElementById('taskList');
+      try {
+        const tasks = await api.get('/api/tasks');
+
+        if (tasks.length === 0) {
+          taskListEl.innerHTML = '<div class="no-deadlocks">暂无监控任务</div>';
+          return;
+        }
+
+        taskListEl.innerHTML = tasks.map(task => `
+          <div class="task-item" data-id="${task.id}">
+            <div class="task-info">
+              <div class="task-name">${escapeHtml(task.name)}
+                <span class="task-status ${task.status}">${task.status === 'active' ? '运行中' : task.status === 'paused' ? '已暂停' : '已停止'}</span>
+              </div>
+              <div class="task-detail">
+                目标：${task.target_host}:${task.target_port} |
+                用户：${task.target_user} |
+                周期：${task.interval}秒 |
+                存储：${task.storage_type === 'local' ? '本地' : `远程 (${task.remote_host}:${task.remote_port})`}
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="btn btn-sm ${task.status === 'active' ? 'btn-warning' : 'btn-primary'}"
+                      onclick="toggleTask(${task.id})">
+                ${task.status === 'active' ? '暂停' : '启动'}
+              </button>
+              <button class="btn btn-sm" onclick="editTask(${task.id})">编辑</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})">删除</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        taskListEl.innerHTML = `<div class="no-deadlocks">加载失败：${err.message}</div>`;
+      }
+    }
+
+    async function createTask() {
+      const form = document.getElementById('taskForm');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      // Convert to proper types
+      data.target_port = parseInt(data.target_port) || 3306;
+      data.interval = parseInt(data.interval) || 10;
+
+      // Add remote config if storage_type is remote
+      if (data.storage_type === 'remote') {
+        data.remote_port = parseInt(data.remote_port) || 3306;
+      }
+
+      try {
+        await api.post('/api/tasks', data);
+        alert('任务创建成功！');
+        form.reset();
+        toggleRemoteConfig();
+        loadTasks();
+      } catch (err) {
+        alert('创建失败：' + err.message);
+      }
+    }
+
+    async function toggleTask(id) {
+      try {
+        const result = await api.post(`/api/tasks/${id}/toggle`);
+        alert(result.message);
+        loadTasks();
+      } catch (err) {
+        alert('操作失败：' + err.message);
+      }
+    }
+
+    async function deleteTask(id) {
+      if (!confirm('确定要删除此监控任务吗？')) return;
+
+      try {
+        await api.delete(`/api/tasks/${id}`);
+        alert('任务已删除');
+        loadTasks();
+      } catch (err) {
+        alert('删除失败：' + err.message);
+      }
+    }
+
+    async function editTask(id) {
+      try {
+        const task = await api.get(`/api/tasks/${id}`);
+
+        if (task.error) {
+          alert('获取任务失败：' + task.error);
+          return;
+        }
+
+        // Populate form
+        const form = document.getElementById('taskForm');
+        form.name.value = task.name;
+        form.target_host.value = task.target_host;
+        form.target_port.value = task.target_port;
+        form.target_user.value = task.target_user;
+        form.target_password.value = task.target_password;
+        form.interval.value = task.interval;
+        form.storage_type.value = task.storage_type;
+
+        if (task.storage_type === 'remote') {
+          form.remote_host.value = task.remote_host || '';
+          form.remote_port.value = task.remote_port || 3306;
+          form.remote_user.value = task.remote_user || '';
+          form.remote_password.value = task.remote_password || '';
+          form.remote_db.value = task.remote_db || '';
+          form.remote_table.value = task.remote_table || 'deadlocks';
+        }
+
+        toggleRemoteConfig();
+
+        // Change create button to update
+        const createBtn = form.querySelector('button[onclick="createTask()"]');
+        if (createBtn) {
+          createBtn.textContent = '更新任务';
+          createBtn.onclick = () => updateTask(id);
+        }
+
+        // Scroll to form
+        form.scrollIntoView({ behavior: 'smooth' });
+      } catch (err) {
+        alert('获取任务失败：' + err.message);
+      }
+    }
+
+    async function updateTask(id) {
+      const form = document.getElementById('taskForm');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      // Convert to proper types
+      data.target_port = parseInt(data.target_port) || 3306;
+      data.interval = parseInt(data.interval) || 10;
+
+      if (data.storage_type === 'remote') {
+        data.remote_port = parseInt(data.remote_port) || 3306;
+      }
+
+      try {
+        await api.put(`/api/tasks/${id}`, data);
+        alert('任务更新成功！');
+        form.reset();
+        toggleRemoteConfig();
+
+        // Restore create button
+        const createBtn = form.querySelector('button[onclick="updateTask()"], button[onclick="createTask()"]');
+        if (createBtn) {
+          createBtn.textContent = '创建任务';
+          createBtn.onclick = createTask;
+        }
+
+        loadTasks();
+      } catch (err) {
+        alert('更新失败：' + err.message);
       }
     }
 
@@ -367,8 +1181,244 @@
     });
 
     // Initial load
+    loadSources();
     fetchDeadlocks();
     startTimer();
+
+    // ============================================
+    // History Search Functions
+    // ============================================
+
+    // Load filter options
+    async function loadHistoryFilters() {
+      try {
+        const filters = await api.get('/api/history/filters');
+
+        // Load servers
+        const serverList = document.getElementById('serverList');
+        serverList.innerHTML = '';
+        filters.servers.forEach(src => {
+          const opt = document.createElement('option');
+          opt.value = src;
+          opt.textContent = src;
+          serverList.appendChild(opt);
+        });
+
+        // Load lock types
+        const lockTypeSelect = document.getElementById('lockTypeSelect');
+        lockTypeSelect.innerHTML = '<option value="">全部</option>';
+        filters.lock_types.forEach(lt => {
+          const opt = document.createElement('option');
+          opt.value = lt;
+          opt.textContent = lt;
+          lockTypeSelect.appendChild(opt);
+        });
+
+        // Load lock modes
+        const lockModeSelect = document.getElementById('lockModeSelect');
+        lockModeSelect.innerHTML = '<option value="">全部</option>';
+        const modeMap = {
+          'S': '共享锁 (S)',
+          'X': '排他锁 (X)',
+          'IS': '意向共享锁 (IS)',
+          'IX': '意向排他锁 (IX)',
+          'U': '更新锁 (U)',
+          'AI': '自增锁 (AI)'
+        };
+        filters.lock_modes.forEach(lm => {
+          const opt = document.createElement('option');
+          opt.value = lm;
+          opt.textContent = modeMap[lm] || lm;
+          lockModeSelect.appendChild(opt);
+        });
+      } catch (err) {
+        console.error('Failed to load history filters:', err);
+      }
+    }
+
+    // Search history
+    async function searchHistory() {
+      const form = document.getElementById('searchForm');
+      const formData = new FormData(form);
+      const params = new URLSearchParams();
+
+      for (const [key, value] of formData.entries()) {
+        if (value) {
+          params.append(key, value);
+        }
+      }
+
+      params.append('page', currentPage);
+      params.append('pageSize', pageSize);
+
+      currentFilters = Object.fromEntries(formData.entries());
+
+      try {
+        const result = await api.get('/api/history', Object.fromEntries(params));
+
+        if (result.error) {
+          document.getElementById('historyList').innerHTML = `<div class="no-deadlocks">错误：${result.error}</div>`;
+          return;
+        }
+
+        totalPages = result.totalPages;
+        document.getElementById('historyList').innerHTML = result.data.length === 0
+          ? '<div class="no-deadlocks">暂无搜索结果</div>'
+          : result.data.map(createHistoryCard).join('');
+
+        document.getElementById('searchResultInfo').textContent = `共 ${result.total} 条记录，当前第 ${result.page}/${result.totalPages} 页`;
+        updatePagination();
+      } catch (err) {
+        document.getElementById('historyList').innerHTML = `<div class="no-deadlocks">搜索失败：${err.message}</div>`;
+      }
+    }
+
+    // Create history card
+    function createHistoryCard(row) {
+      const lockTypeCn = formatLockType(row.lock_type);
+      const lockModeCn = formatLockMode(row.lock_mode);
+      const waitHoldCn = formatWaitHold(row.wait_hold);
+
+      return `
+        <div class="deadlock-card" data-id="${row.server}_${row.ts_raw}_${row.thread}">
+          <div class="deadlock-header" onclick="this.nextElementSibling.classList.toggle('expanded')">
+            <div class="deadlock-info">
+              <span>🕐 <strong>${row.ts}</strong></span>
+              <span>📊 表：<strong>${row.tbl}</strong></span>
+              <span>🔑 索引：<strong>${row.idx}</strong></span>
+              <span>🔐 锁：<strong>${lockTypeCn} / ${lockModeCn}</strong></span>
+              <span>🌐 源：<strong>${row.server}</strong></span>
+            </div>
+            <span class="victim-badge" style="${row.victim === 1 ? '' : 'background: #4caf50; color: #fff;'}">
+              ${row.victim === 1 ? '牺牲品' : '持有者'}
+            </span>
+          </div>
+          <div class="deadlock-body">
+            <div class="thread-panel">
+              <div class="thread-title">
+                <span>${row.victim === 1 ? '🔴 受害者线程' : '🔵 对手线程'}</span>
+                <span>线程 ID: ${row.thread}</span>
+              </div>
+              <div class="thread-info">
+                <label>数据库:</label> ${row.db}<br>
+                <label>表:</label> ${row.tbl}<br>
+                <label>索引:</label> ${row.idx}<br>
+                <label>锁类型:</label> ${row.lock_type} (${lockTypeCn})<br>
+                <label>锁模式:</label> ${row.lock_mode} (${lockModeCn})<br>
+                <label>状态:</label> ${waitHoldCn}<br>
+                <label>主机:</label> ${row.hostname}<br>
+                <label>IP:</label> ${row.ip}<br>
+                <label>用户:</label> ${row.user}
+              </div>
+              <div class="query-box">${escapeHtml(row.query)}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Reset search
+    function resetSearch() {
+      document.getElementById('searchForm').reset();
+      currentPage = 1;
+      currentFilters = {};
+      document.getElementById('historyList').innerHTML = '<div class="no-deadlocks">请输入搜索条件后点击搜索</div>';
+      document.getElementById('searchResultInfo').textContent = '';
+      document.getElementById('pagination').classList.add('hidden');
+    }
+
+    // Pagination
+    function updatePagination() {
+      const pagination = document.getElementById('pagination');
+      const pageInfo = document.getElementById('pageInfo');
+
+      pageInfo.textContent = `${currentPage} / ${totalPages}`;
+      document.getElementById('firstPage').disabled = currentPage === 1;
+      document.getElementById('prevPage').disabled = currentPage === 1;
+      document.getElementById('nextPage').disabled = currentPage === totalPages;
+      document.getElementById('lastPage').disabled = currentPage === totalPages;
+
+      pagination.classList.remove('hidden');
+    }
+
+    function goToPage(page) {
+      if (page < 1 || page > totalPages) return;
+      currentPage = page;
+      searchHistory();
+    }
+
+    function changePageSize() {
+      pageSize = parseInt(document.getElementById('pageSizeSelect').value);
+      currentPage = 1;
+      searchHistory();
+    }
+
+    // Export to CSV
+    async function exportHistory() {
+      const form = document.getElementById('searchForm');
+      const formData = new FormData(form);
+      const params = new URLSearchParams();
+
+      for (const [key, value] of formData.entries()) {
+        if (value) {
+          params.append(key, value);
+        }
+      }
+
+      params.append('page', 1);
+      params.append('pageSize', 10000); // Export all
+
+      try {
+        const result = await api.get('/api/history', Object.fromEntries(params));
+
+        if (result.error) {
+          alert('导出失败：' + result.error);
+          return;
+        }
+
+        const headers = ['server', 'ts', 'thread', 'db', 'tbl', 'idx', 'lock_type', 'lock_mode', 'wait_hold', 'victim', 'hostname', 'ip', 'user', 'query'];
+        const csv = [
+          headers.join(','),
+          ...result.data.map(row =>
+            headers.map(h => {
+              let val = row[h];
+              if (typeof val === 'string' && val.includes(',')) {
+                val = `"${val.replace(/"/g, '""')}"`;
+              }
+              return val;
+            }).join(',')
+          )
+        ].join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `deadlock_history_${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        alert('导出失败：' + err.message);
+      }
+    }
+
+    // Expose functions to window for onclick handlers
+    window.toggleRemoteConfig = toggleRemoteConfig;
+    window.showCreateTableSQL = showCreateTableSQL;
+    window.closeSqlModal = closeSqlModal;
+    window.createTask = createTask;
+    window.toggleTask = toggleTask;
+    window.deleteTask = deleteTask;
+    window.editTask = editTask;
+    window.updateTask = updateTask;
+    window.searchHistory = searchHistory;
+    window.resetSearch = resetSearch;
+    window.exportHistory = exportHistory;
+    window.goToPage = goToPage;
+    window.changePageSize = changePageSize;
+    window.loadSources = loadSources;
+    window.switchNamespace = switchNamespace;
+  });
   </script>
 </body>
 </html>
